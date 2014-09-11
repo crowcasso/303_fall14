@@ -21,6 +21,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private float[] iMatrix = new float[9];
 	private float[] actualOrientation = new float[3];
 	
+	private float oldCurrentOrientation = 0.0f;
+	private final float FILTER = .99f;
+	
 	private CompassView compass;
 
     @Override
@@ -40,7 +43,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     				mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
     				SensorManager.SENSOR_DELAY_FASTEST);
     		mSensorManager.registerListener(this,
-    				mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY),
+    				mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
     				SensorManager.SENSOR_DELAY_FASTEST);
     }
     
@@ -55,7 +58,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	public void onSensorChanged(SensorEvent event) {
 		
 		switch(event.sensor.getType()) {
-		case Sensor.TYPE_GRAVITY:
+		case Sensor.TYPE_ACCELEROMETER:
 			gravityValues = event.values.clone();
 			break;
 		case Sensor.TYPE_MAGNETIC_FIELD:
@@ -68,6 +71,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 				SensorManager.getOrientation(rMatrix, actualOrientation);
 				
 				float currentOrientation = (float) -Math.toDegrees(actualOrientation[0]);
+				currentOrientation = currentOrientation * (1 - FILTER) + oldCurrentOrientation * FILTER;
+				oldCurrentOrientation = currentOrientation;
+				System.out.println("orientation = " + currentOrientation);
 				compass.setAzimuth(currentOrientation);
 				compass.invalidate();
 			}
