@@ -10,7 +10,7 @@ import android.view.View;
 
 public class DoodleView extends View {
 	
-	private final int WIDTH = 30;
+	protected int width = 25;
 	private ArrayList<Dot> dots;
 
 	public DoodleView(Context context, AttributeSet attrs) {
@@ -25,7 +25,7 @@ public class DoodleView extends View {
 		int action = event.getActionMasked();
 		
 		if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE) {
-			Dot dot = new Dot((int) event.getX(), (int) event.getY(), WIDTH);
+			Dot dot = new Dot((int) event.getX(), (int) event.getY(), width);
 			dots.add(dot);
 			invalidate();
 			System.out.println("FOUND A TOUCH!");

@@ -5,6 +5,7 @@
     tools:context="edu.elon.cs.mobile.doodle.MainActivity" >
 
     <edu.elon.cs.mobile.doodle.DoodleView
+        android:id="@+id/doodleview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true" />
