@@ -27,7 +27,12 @@ public class SkyView extends SurfaceView implements SurfaceHolder.Callback {
 	// SurfaceHolder.Callback
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
+		if (thread.getState() == Thread.State.TERMINATED) {
+			thread = new SkyViewThread(context);
+		}
 		
+		thread.setIsRunning(true);
+		thread.start();
 	}
 
 	@Override
@@ -38,14 +43,21 @@ public class SkyView extends SurfaceView implements SurfaceHolder.Callback {
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
+		boolean retry = true;
+		thread.setIsRunning(false);
 		
+		while (retry) {
+			try {
+				thread.join();
+				retry = false;
+			}
+			catch (InterruptedException e) { }
+		}
 	}
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		
-		// FIXME later
-		
+		thread.onTouchEvent(event);
 		return true;
 	}
 	
@@ -54,10 +66,21 @@ public class SkyView extends SurfaceView implements SurfaceHolder.Callback {
 		
 		private Bird bird;
 		private float touchX, touchY;
+		private boolean isRunning;
+		private long lastTime;
+		
+		private int frames;
+		private long nextUpdate;
 		
 		public SkyViewThread(Context context) {
-			
+			isRunning = false;
 			bird = new Bird(context);
+			
+			frames = 0;
+		}
+		
+		public void setIsRunning(boolean isRunning) {
+			this.isRunning = isRunning;
 		}
 		
 		public void onTouchEvent(MotionEvent event) {
@@ -66,7 +89,7 @@ public class SkyView extends SurfaceView implements SurfaceHolder.Callback {
 		}
 		
 		private void doDraw(Canvas canvas) {
-			canvas.drawColor(Color.BLUE);
+			canvas.drawColor(Color.YELLOW);
 			bird.doDraw(canvas);
 		}
 		
@@ -74,18 +97,50 @@ public class SkyView extends SurfaceView implements SurfaceHolder.Callback {
 			bird.doUpdate(elapsed, touchX, touchY);
 		}
 		
+		private void updateFPS(long now) {
+			float fps = 0.0f;
+			++frames;
+			float overtime = now - nextUpdate;
+			if (overtime > 0) {
+				fps = frames / (1 + overtime/1000.0f);
+				frames = 0;
+				nextUpdate = System.currentTimeMillis() + 1000;
+				
+				System.out.println("FPS: " + fps);
+			}
+		}
+		
 		@Override
 		public void run() {
+			
+			lastTime = System.currentTimeMillis() + 100;
+			
+			while (isRunning) {
+				Canvas canvas = null;
+				try {
+					canvas = surfaceHolder.lockCanvas();
+					if (canvas == null) {
+						isRunning = false;
+						continue;
+					}
+					
+					synchronized(surfaceHolder) {
+						long now = System.currentTimeMillis();
+						double elapsed = (now - lastTime) / 1000.0;
+						lastTime = now;
+						
+						updateFPS(now);
+						doUpdate(elapsed);
+						doDraw(canvas);
+					}
+				} finally {
+					if (canvas != null) {
+						surfaceHolder.unlockCanvasAndPost(canvas);
+					}
+				}
+			}
 			
 		}
 		
 	}
-
 }
-
-
-
-
-
-
-

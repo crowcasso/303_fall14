@@ -12,7 +12,7 @@ public class Bird {
 	private float width, height;
 	private Bitmap bitmap;
 	
-	private final float SCALE = 0.75f;
+	private final float SCALE = .5f;
 	
 	public Bird(Context context) {
 		bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.bird);
@@ -33,6 +33,7 @@ public class Bird {
 	}
 	
 	public void doUpdate(double elapsed, float touchX, float touchY) {
+		//System.out.println(elapsed);
 		x = (float) (x + ((touchX - x) * elapsed));
 		y = (float) (y + ((touchY - y) * elapsed));
 	}
